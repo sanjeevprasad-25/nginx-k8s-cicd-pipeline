@@ -28,9 +28,9 @@ pipeline{
             steps{
                 dir('Terraform'){
                     echo "Validating and planing terraform"
-                    sh 'terraform validate'
-                    sh 'terraform plan -out=tfplan'
-                    sh 'ls -l'
+                    bat 'terraform validate'
+                    bat 'terraform plan -out=tfplan'
+                    bat 'ls -l'
                                 }
                   }
                 post{
@@ -42,7 +42,7 @@ pipeline{
             steps{
                 dir('Terraform'){
                     echo "Applying terrform"
-                    sh 'terraform apply --auto-approve tfplan'
+                    bat 'terraform apply --auto-approve tfplan'
                                 }
                   } 
                 post{
