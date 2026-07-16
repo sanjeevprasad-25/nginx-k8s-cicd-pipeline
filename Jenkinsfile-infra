@@ -30,7 +30,7 @@ pipeline{
                     echo "Validating and planing terraform"
                     bat 'terraform validate'
                     bat 'terraform plan -out=tfplan'
-                    bat 'ls -l'
+                    bat 'dir tfplan'
                                 }
                   }
                 post{
