@@ -16,7 +16,7 @@ pipeline{
             steps{
                 dir('Terraform'){
                     echo "Initialize terraform"
-                    sh 'terraform init'
+                    bat 'terraform init'
                                 }
                  }
                  post{
