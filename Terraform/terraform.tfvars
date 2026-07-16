@@ -1,0 +1,7 @@
+rg_name     = "rg-nginx-k8s-uat"
+rg_location = "Central India"
+rg_env      = "UAT"
+rg_web_net  = "rg-nginx-k8s-uat-network"
+rg_sn       = "rg-nginx-k8s-uat-subnet"
+rg_web_acr  = "rgnginxk8sacr"
+rg_web_aks  = "rgnginxk8saks"

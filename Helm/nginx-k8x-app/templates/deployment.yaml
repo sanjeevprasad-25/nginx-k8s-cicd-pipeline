@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}
+  labels:
+    env: {{.Values.environment}}
+spec:
+  replicas: {{.Values.replicaCount}}
+  selector:
+    matchLabels: 
+      {{- include "nginx_k8s.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: 
+        {{- include "nginx_k8s.labels" . | nindent 8 }}
+    spec:    
+      containers:
+        - name:  nginx  
+          image: {{.Values.image.repository}}:{{.Values.image.tag}}
+          imagePullPolicy: {{.Values.image.pullPolicy}}
+          ports:
+            - containerPort: {{.Values.service.port}} 
