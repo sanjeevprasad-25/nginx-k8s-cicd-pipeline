@@ -1,0 +1,105 @@
+pipeline{
+    environment {
+    AZURE_CLIENT_ID       = credentials('AZURE_CLIENT_ID')
+    AZURE_CLIENT_SECRET   = credentials('AZURE_CLIENT_SECRET')
+    AZURE_TENANT_ID       = credentials('AZURE_TENANT_ID')
+    AZURE_SUBSCRIPTION_ID = credentials('AZURE_SUBSCRIPTION_ID')
+    RESOURCE_GROUP = "rg-nginx-k8s-uat"
+    AKS_CLUSTER = "rgnginxk8saks"
+                }
+    agent any
+      stages{
+        stage("Clone Repository"){
+            steps{
+                echo "Cloning repository"
+                git branch: "main",
+                    url: "https://github.com/sanjeevprasad-25/nginx-k8s-cicd-pipeline.git"
+                 }
+            post{
+                    success {echo "Cloned successfully"}
+                    failure {echo "Cloning failed"}
+                 }
+                                }
+        stage("Docker Image Build"){
+            steps{
+                echo "Building docker image"
+                bat 'docker build -t nginx-k8s-app:v1 .'
+                 }
+            post{
+                success {echo "Image build successfully"}
+                failure {echo "Image build failed"}
+            }     
+                                    }  
+        stage("Azure Login") {
+            steps {
+                bat '''
+                az login --service-principal ^
+                --username %AZURE_CLIENT_ID% ^
+                --password=%AZURE_CLIENT_SECRET% ^
+                --tenant %AZURE_TENANT_ID%
+                    '''
+        bat 'az account set --subscription %AZURE_SUBSCRIPTION_ID%'
+                  }
+            post{
+                success {echo "Azure login successfully"}
+                failure {echo "Azure login failed"}
+                }    
+                            } 
+        stage("ACR login"){
+            steps {
+                echo 'login to ACR'
+                bat 'az acr login --name rgnginxk8sacr'
+                  }
+            post{
+                success {echo'ACR login successfull'}
+                failure {echo'ACR login failed'}
+            }      
+                          }
+        stage("Docker Image Tag"){
+            steps{
+                echo 'Tagging docker image'
+                bat 'docker tag nginx-k8s-app:v1 rgnginxk8sacr.azurecr.io/nginx-k8s-app:v1'
+                 }
+             post{
+                success {echo'Image tagged successfully'}
+                failure {echo'Image tagged failed'}
+                 }    
+                                    }  
+        stage("Docker Image Push"){
+            steps{
+                echo 'Pushing docker image to ACR'
+                bat 'docker push rgnginxk8sacr.azurecr.io/nginx-k8s-app:v1'
+                 }
+             post{
+                success {echo'Image pushed successfully'}
+                failure {echo'Image pushed failed'}
+                 }    
+                                    }
+        stage("Login to AKS"){
+            steps{
+                echo "Login to AKS"
+                bat 'az aks get-credentials --resource-group %RESOURCE_GROUP% --name %AKS_CLUSTER% --overwrite-existing'
+                  }
+            post{
+                success {echo 'AKS login successful'}
+                failure {echo 'AKS login failed'}
+                  }      
+                             }
+        stage("HELM Deploy"){
+            steps{
+                echo 'Deployment Through HELM'
+               dir('Helm/nginx-k8x-app') {
+            bat 'helm upgrade --install nginx-k8s .'
+                                         }
+                 }
+            post{
+                success {echo 'Deployed successfully'}
+                failure {echo 'Depolyment failed'}
+                 }     
+                            }
+            } 
+          post{
+    success {echo "Application pipeline completed successfully"}
+    failure {echo "Application pipeline failed"}
+              }    
+        }           
